@@ -1,0 +1,38 @@
+{
+  "name": "kouak-app",
+  "version": "1.0.0",
+  "description": "Application de chat en temps réel Kouak - Fullstack",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "build": "echo 'Application fullstack prête'",
+    "setup": "npm install && echo 'Installation terminée - Utilisez npm start pour démarrer'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "sequelize": "^6.32.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "chat", 
+    "websocket", 
+    "socket.io", 
+    "express", 
+    "fullstack",
+    "real-time",
+    "kouak"
+  ],
+  "author": "Votre nom",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
