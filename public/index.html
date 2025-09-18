@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kouak - Chat en Temps Réel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/app.css" />
+  </head>
+  <body class="bg-gradient-to-br from-blue-400 to-purple-600 min-h-screen">
+    <div id="app">
+      <!-- Écran de chargement -->
+      <div id="loading" class="flex items-center justify-center min-h-screen">
+        <div class="text-white text-center">
+          <div
+            class="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"
+          ></div>
+          <h2 class="text-2xl font-bold">Chargement de Kouak...</h2>
+        </div>
+      </div>
+
+      <!-- Écran de connexion -->
+      <div
+        id="loginScreen"
+        class="hidden min-h-screen flex items-center justify-center p-4"
+      >
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+          <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">🦆 Kouak</h1>
+            <p class="text-gray-600">Application de chat en temps réel</p>
+          </div>
+
+          <div
+            id="errorMessage"
+            class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"
+          ></div>
+
+          <!-- Formulaire de connexion -->
+          <div id="loginForm">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="loginEmail"
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="votre@email.com"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2"
+                  >Mot de passe</label
+                >
+                <input
+                  type="password"
+                  id="loginPassword"
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button
+                onclick="handleLogin()"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+              >
+                Se connecter
+              </button>
+            </div>
+            <div class="text-center mt-6">
+              <p class="text-gray-600">
+                Pas de compte ?
+                <button
+                  onclick="showRegister()"
+                  class="text-blue-500 hover:text-blue-600 font-semibold"
+                >
+                  S'inscrire
+                </button>
+              </p>
+            </div>
+          </div>
+
+          <!-- Formulaire d'inscription -->
+          <div id="registerForm" class="hidden">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2"
+                  >Nom d'utilisateur</label
+                >
+                <input
+                  type="text"
+                  id="registerUsername"
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="VotreNom"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="registerEmail"
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="votre@email.com"
+                />
+              </div>
+              <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2"
+                  >Mot de passe</label
+                >
+                <input
+                  type="password"
+                  id="registerPassword"
+                  class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  placeholder="••••••••"
+                />
+              </div>
+              <button
+                onclick="handleRegister()"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200"
+              >
+                S'inscrire
+              </button>
+            </div>
+            <div class="text-center mt-6">
+              <p class="text-gray-600">
+                Déjà un compte ?
+                <button
+                  onclick="showLogin()"
+                  class="text-blue-500 hover:text-blue-600 font-semibold"
+                >
+                  Se connecter
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interface de chat -->
+      <div id="chatScreen" class="hidden h-screen bg-gray-100 flex flex-col">
+        <!-- Header -->
+        <div
+          class="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center"
+        >
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">🦆 Kouak</h1>
+            <p class="text-gray-600" id="welcomeMessage">Bienvenue</p>
+          </div>
+          <button
+            onclick="handleLogout()"
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-200"
+          >
+            Déconnexion
+          </button>
+        </div>
+
+        <div class="flex flex-1 overflow-hidden">
+          <!-- Sidebar - Utilisateurs connectés -->
+          <div class="w-64 bg-white border-r flex flex-col">
+            <div class="p-4 border-b">
+              <h3 class="text-lg font-semibold text-gray-800">
+                Utilisateurs connectés
+                <span id="userCount" class="text-sm text-gray-500">(0)</span>
+              </h3>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+              <div id="connectedUsers" class="p-4 space-y-2">
+                <!-- Liste des utilisateurs connectés -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Zone de chat -->
+          <div class="flex-1 flex flex-col">
+            <!-- Messages -->
+            <div
+              id="messagesContainer"
+              class="flex-1 overflow-y-auto p-4 space-y-3 message-container"
+            >
+              <!-- Messages affichés ici -->
+            </div>
+
+            <!-- Zone de saisie -->
+            <div class="bg-white border-t p-4">
+              <div class="flex space-x-2">
+                <input
+                  type="text"
+                  id="messageInput"
+                  placeholder="Tapez votre message..."
+                  class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                  onkeypress="handleKeyPress(event)"
+                />
+                <button
+                  onclick="sendMessage()"
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-200"
+                >
+                  Envoyer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
